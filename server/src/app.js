@@ -7,25 +7,19 @@ import dotenv from 'dotenv'
 dotenv.config()
 /* Rutas */
 import routes from './routes/index.js'
-import bodyParser from 'body-parser'
 
 /* Conexion a la base de datos */
-mongoose.Promise = global.Promise;
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Conectado a la base de datos de mongo'))
-.catch(err => console.error('Error al conectar a MongoDB: ', err))
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('Conectado a la base de datos'))
+  .catch(err => console.error("Error al contectar a MongoDB: ", err));
 
 const app = express();// Creación de una instancia de la aplicación Express
 
-
-
-app.use(bodyParser.json()); // Middleware para el manejo de datos en formato JSON
-app.use(bodyParser.urlencoded({extended:true}))
-
+// Middlewares principales
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors())
+
 /* Configuracion de las rutas */
 routes(app)
 
