@@ -40,16 +40,17 @@ const createUser = async (req, res) => {
 
 
 // Controlador para obtener todos los usuarios
-const getUsers = async (_, res) => {
+const getUsers = async (req, res) => {
     try {
         // Obtener todos los usuarios de la base de datos
         const users = await User.find().select('-password');
 
         // Enviar la lista de usuarios como respuesta
-        res.json(users);
+        return res.json(users);
+
     } catch (err) {
         // Enviar una respuesta de error en caso de algún problema
-        res.status(500).json({ message: err.message });
+        return res.status(500).json({ message: err.message });
     }
 };
 
@@ -76,7 +77,6 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
-    
         // Buscar al usuario por su ID en la base de datos
         const user = await User.findById(req.params.id);
 

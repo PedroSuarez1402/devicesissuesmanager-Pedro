@@ -10,20 +10,23 @@ const roomSchema = new mongoose.Schema({
   torre: {
     type: String,
     require: true,
-    uppercase: true
+    uppercase: true,
+    trim: true
   },
   piso: {
     type: Number,
     require: true
   },
+  categoria: {
+    type: String,
+    require: true,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
   },
-  categoria: {
-    type: String,
-    require: true
-  }
+  
 }, { versionKey: false })// La opción { versionKey: false } evita la inclusión del campo "__v" en los documentos
 
 // Definir un índice compuesto único para los campos nombre y torre
