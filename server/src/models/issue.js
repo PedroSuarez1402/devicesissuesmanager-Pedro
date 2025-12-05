@@ -1,13 +1,11 @@
-// Importar mongoose para definir el esquema y el modelo
 import mongoose, { Schema } from 'mongoose';
 
-// Definir el esquema para los problemas (issues)
 const issueSchema = new mongoose.Schema({
   creator: {
     id: {
-      type: String,
-      required: true,
-      trim: true
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
     },
     name: {
       type: String,
@@ -17,44 +15,51 @@ const issueSchema = new mongoose.Schema({
   },
   device: {
     type: Schema.Types.ObjectId,
-    ref: 'Device'
+    ref: 'Device',
+    required: true
   },
+  // Tipo de problema (Software, Hardware, Red, etc.)
   type: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    lowercase: true
   },
   description: {
     type: String,
     trim: true
   },
+  
+  // --- REFERENCIAS A CATÁLOGOS (NUEVO) ---
+  
+  // Estado del DISPOSITIVO (Ej: Dañado, Funcionando)
   deviceStatus: {
-    type: String,
-    trim: true,
-    enum: ['Fixed', 'Damaged', 'Unknown', 'Not Working', 'Working'], // Asegúrate de usar el enum si quieres limitar los valores
-    default: 'Unknown'
+    type: Schema.Types.ObjectId,
+    ref: 'DeviceStatus', // Referencia al modelo en catalogs/DeviceStatus.js
+    required: true
   },
+  
+  // Estado del REPORTE (Ej: Abierto, Cerrado, En Progreso)
   status: {
-    type: String,
-    trim: true,
-    enum: ['Open', 'InProgress', 'Closed'], // Asegúrate de tener los valores correctos
-    default: 'Open'
+    type: Schema.Types.ObjectId,
+    ref: 'IssueStatus', // Referencia al modelo en catalogs/IssueStatus.js
+    required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
+  
+  // ----------------------------------------
+
   notes: [{
     type: Schema.Types.ObjectId,
     ref: 'Note'
   }],
+  
   issuesManagement: [
     {
       responsible: {
         id: {
-          type: String,
-          required: true,
-          trim: true
+          type: Schema.Types.ObjectId, // Recomendado: Referencia real al usuario si existe
+          ref: 'User',
+          required: true
         },
         name: {
           type: String,
@@ -78,10 +83,11 @@ const issueSchema = new mongoose.Schema({
       }
     }
   ]
-}, { versionKey: false }); // La opción { versionKey: false } evita la inclusión del campo "__v" en los documentos
+}, { 
+    versionKey: false,
+    timestamps: true // Agrega createdAt y updatedAt automáticamente
+});
 
-// Crear el modelo "Issue" basado en el esquema
 const Issue = mongoose.model('Issue', issueSchema);
 
-// Exportar el modelo para su uso en otros archivos
 export default Issue;

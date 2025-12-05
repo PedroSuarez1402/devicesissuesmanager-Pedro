@@ -1,23 +1,21 @@
-import express from "express";
-
-import deviceRoute from './deviceRoutes.js'
-import roomRoutes from './roomRoutes.js'
-import issueRoutes from './issueRoutes.js'
-import userRoutes from './userRoutes.js'
-import authRoutes from './authRoutes.js'
+import { Router } from 'express';
+import v1Routes from './apis/v1/index.js'; // Importamos todo el bloque v1
 
 const routes = (app) => {
-    const router = express.Router()
+    // Creamos un router global para la API
+    const apiRouter = Router();
 
-    // Registrar los módulos de forma modular
-    router.use('/auth', authRoutes)
-    router.use('/devices', deviceRoute)
-    router.use('/rooms', roomRoutes)
-    router.use('/issues', issueRoutes)
-    router.use('/users', userRoutes)
+    // Montamos la versión 1
+    apiRouter.use('/v1', v1Routes);
 
-    // Prefijo global para tu API
-    app.use('/api', router)
-}
+    // Montamos todo bajo '/api'
+    // Esto resultará en rutas tipo: http://localhost:5001/api/v1/devices
+    app.use('/api', apiRouter);
+    
+    // (Opcional) Ruta base de salud para verificar que el API vive
+    app.get('/health', (req, res) => {
+        res.status(200).json({ status: 'OK', env: process.env.NODE_ENV });
+    });
+};
 
-export default routes
+export default routes;

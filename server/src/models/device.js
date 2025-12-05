@@ -1,52 +1,56 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
-// Definir el esquema para los dispositivos
-const deviceSchema = new mongoose.Schema({
-  code: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true
-  },
-  brand: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  description: {
-    type: String,
-    trim: true
-  },
-  // Cambiar la estructura de room a una referencia
-  room: {
-    type: Schema.Types.ObjectId,
-    ref: 'Room'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-}, { versionKey: false });
-
-// Middleware para generar el código automáticamente antes de guardar
-deviceSchema.pre('validate', async function (next) {
-  const device = this;
-  
-  // Solo generar código si es un nuevo documento
-  if (device.isNew) {
-    try {
-      const lastDevice = await mongoose.model('Device').findOne().sort({ createdAt: -1 });
-      const lastCode = lastDevice ? parseInt(lastDevice.code.replace('DEV', '')) : 0;
-      device.code = `DEV${String(lastCode + 1).padStart(3, '0')}`;
-    } catch (error) {
-      return next(error);
+const deviceSchema = new mongoose.Schema(
+  {
+    code: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    brand: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    room: {
+      type: Schema.Types.ObjectId,
+      ref: "Room",
     }
+  },
+  {
+    versionKey: false,
+    timestamps: true
   }
+);
 
-  next();
+// Generar código automático
+deviceSchema.pre("validate", async function (next) {
+  if (!this.isNew) return next();
+
+  try {
+    const last = await mongoose
+      .model("Device")
+      .findOne()
+      .sort({ createdAt: -1 });
+
+    const lastCode = last
+      ? parseInt(last.code.replace("DEV", "")) 
+      : 0;
+
+    this.code = `DEV${String(lastCode + 1).padStart(3, "0")}`;
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
-// Crear el modelo "Device" basado en el esquema
-const Device = mongoose.model('Device', deviceSchema);
+const Device = mongoose.model("Device", deviceSchema);
 
 export default Device;
