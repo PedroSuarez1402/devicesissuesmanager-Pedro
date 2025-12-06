@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
+import { ApiResponse } from '../utils/apiResponse.js';
 
 const authMiddleware = (roles = []) => {
     return async (req, res, next) => {
@@ -7,7 +8,7 @@ const authMiddleware = (roles = []) => {
             const authHeader = req.headers.authorization;
 
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({ message: "Acceso no autorizado. Token faltante." });
+                return ApiResponse.error(res, "Acceso no autorizado. Token faltante.", 401);
             }
 
             const token = authHeader.split(' ')[1];
@@ -18,11 +19,11 @@ const authMiddleware = (roles = []) => {
             const user = await User.findById(decoded.id).select('-password');
 
             if (!user) {
-                return res.status(401).json({ message: "Token inválido. Usuario no encontrado." });
+                return ApiResponse.error(res, "Token inválido. Usuario no encontrado.", 401);
             }
-            //Validacion de roles 
+            // Validacion de roles 
             if(roles.length > 0 && !roles.includes(user.role)){
-                return res.status(403).json({ message: "No tienes permiso para esta acción." });
+                return ApiResponse.error(res, "No tienes permiso para esta acción.", 403);
             }
 
             // Guardar user en req.user para usarlo en controladores
@@ -30,10 +31,7 @@ const authMiddleware = (roles = []) => {
 
             next();
         } catch (error) {
-            return res.status(401).json({
-                message: "Token no válido",
-                error: process.env.NODE_ENV === "development" ? error.message : undefined
-            });
+            return ApiResponse.error(res, "Token no válido o expirado", 401, error);
         }
     }
 }

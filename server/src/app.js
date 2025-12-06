@@ -5,6 +5,18 @@ import { connectDB } from './config/db.js';
 import { PORT } from './config/index.js';
 import routes from './routes/index.js'
 
+// --- Registro de Modelos ---
+// Importamos los modelos aquí para asegurar que Mongoose los conozca
+// antes de que cualquier controlador intente usarlos o popularlos.
+import './models/user.js';
+import './models/catalogs/IssueStatus.js';
+import './models/catalogs/DeviceStatus.js';
+import './models/device.js';
+import './models/issue.js';
+import './models/note.js';
+import './models/room.js';
+// ---------------------------
+
 const app = express();// Creación de una instancia de la aplicación Express
 
 // Middlewares principales

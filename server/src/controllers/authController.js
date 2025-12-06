@@ -1,4 +1,5 @@
 import * as authService from '../services/auth.service.js';
+import { ApiResponse } from '../utils/apiResponse.js';
 
 /* Register endpoint */
 export const registerUser = async (req, res) => {
@@ -6,14 +7,13 @@ export const registerUser = async (req, res) => {
         const { name, email, password, role } = req.body;
         // Validacion
         if (!name || !email || !password) {
-            return res.status(400).json({ message: "Todos los campos son obligatorios." });
+            return ApiResponse.error(res, "Todos los campos son obligatorios.", 400);
         }
 
         // utilizar el servicio para registrar al usuario
         const { newUser, token } = await authService.register({ name, email, password, role });
 
-        res.status(201).json({
-            message: "Usuario registrado correctamente",
+        const responseData = {
             token,
             user: {
                 id: newUser._id,
@@ -21,11 +21,14 @@ export const registerUser = async (req, res) => {
                 email: newUser.email,
                 role: newUser.role
             }
-        })
+        };
+
+        return ApiResponse.success(res, responseData, "Usuario registrado correctamente", 201);
+
     } catch (error) {
         // Manejo simple de errores conocidos vs internos
         const status = error.message === "El usuario ya existe." ? 400 : 500;
-        res.status(status).json({ message: error.message });
+        return ApiResponse.error(res, error.message, status, error);
     }
 }
 export const loginUser = async (req, res) => {
@@ -33,13 +36,12 @@ export const loginUser = async (req, res) => {
         const {email, password} = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: "Credenciales incorrectas" });
+            return ApiResponse.error(res, "Credenciales incorrectas", 400);
         }
 
         const { user, token } = await authService.login({ email, password });
         
-        res.json({
-            message: "Login exitoso",
+        const responseData = {
             token,
             user: {
                 id: user._id,
@@ -47,27 +49,30 @@ export const loginUser = async (req, res) => {
                 email: user.email,
                 role: user.role
             }
-        });
+        };
+
+        return ApiResponse.success(res, responseData, "Login exitoso", 200);
+
     } catch (error) {
         const status = error.message === "Credenciales incorrectas" ? 401 : 500;
-        res.status(status).json({ message: error.message });
+        return ApiResponse.error(res, error.message, status, error);
     }
 }
 export const getMe = async (req, res) => {
     try {
         const user = await authService.getUserById(req.user.id);
         
-        res.json(user)
+        return ApiResponse.success(res, user, "Información de usuario obtenida");
         
     } catch (error) {
-        res.status(404).json({message: error.message});
+        return ApiResponse.error(res, error.message, 404, error);
     }
 }
 
 export const logoutUser = async (req, res) => {
     try {
-        res.json({ message: "Logout exitoso" });
+        return ApiResponse.success(res, null, "Logout exitoso");
     } catch (error) {
-        res.status(500).json({message: error.message});
+        return ApiResponse.error(res, error.message, 500, error);
     }
 }

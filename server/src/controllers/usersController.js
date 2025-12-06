@@ -1,4 +1,5 @@
 import * as userService from '../services/users.service.js';
+import { ApiResponse } from '../utils/apiResponse.js';
 
 // Controlador para crear un nuevo usuario
 export const createUser = async (req, res) => {
@@ -6,10 +7,9 @@ export const createUser = async (req, res) => {
         const { name, email, password} = req.body;
 
         if (!name || !email || !password) {
-            return res.status(400).json({ message: "Todos los campos son obligatorios." });
+            return ApiResponse.error(res, "Todos los campos son obligatorios.", 400);
         }
         
-
         const newUser = await userService.createUser(req.body);
         // Respuesta sin contraseña
         const userResponse = {
@@ -19,13 +19,10 @@ export const createUser = async (req, res) => {
             role: newUser.role
         };
 
-        return res.status(201).json({
-            message: "Usuario creado correctamente",
-            user: userResponse
-        });
+        return ApiResponse.success(res, userResponse, "Usuario creado correctamente", 201);
     } catch (err) {
         const status = err.message.includes("Ya existe") ? 400 : 500;
-        return res.status(status).json({ message: err.message });
+        return ApiResponse.error(res, err.message, status, err);
     }
 };
 
@@ -33,29 +30,21 @@ export const createUser = async (req, res) => {
 // Controlador para obtener todos los usuarios
 export const getUsers = async (req, res) => {
     try {
-        // Obtener todos los usuarios de la base de datos
         const users = await userService.getAllUsers();
-
-        // Enviar la lista de usuarios como respuesta
-        return res.json(users);
+        return ApiResponse.success(res, users, "Lista de usuarios obtenida");
 
     } catch (err) {
-        // Enviar una respuesta de error en caso de algún problema
-        return res.status(500).json({ message: err.message });
+        return ApiResponse.error(res, err.message, 500, err);
     }
 };
 
 // Controlador para obtener un usuario por su ID
 export const getUser = async (req, res) => {
     try {
-        // Buscar al usuario por su ID en la base de datos
         const user = await userService.getUserById(req.params.id);
-
-        // Enviar el usuario como respuesta
-        return res.json(user);
+        return ApiResponse.success(res, user, "Usuario encontrado");
     } catch (err) {
-        // Enviar una respuesta de error en caso de algún problema
-        return res.status(500).json({ message: err.message });
+        return ApiResponse.error(res, err.message, 404, err);
     }
 };
 
@@ -63,13 +52,16 @@ export const getUser = async (req, res) => {
 export const updateUser = async (req, res) => {
     try {
         const updatedUser = await userService.updateUser(req.params.id, req.body);
-        return res.json({ 
-            message: "Usuario actualizado", 
-            user: { id: updatedUser._id, name: updatedUser.name, email: updatedUser.email, role: updatedUser.role }
-        });
+        const userResponse = { 
+            id: updatedUser._id, 
+            name: updatedUser.name, 
+            email: updatedUser.email, 
+            role: updatedUser.role 
+        };
+        return ApiResponse.success(res, userResponse, "Usuario actualizado correctamente");
     } catch (err) {
         const status = err.message === "Usuario no encontrado." ? 404 : 400;
-        return res.status(status).json({ message: err.message });
+        return ApiResponse.error(res, err.message, status, err);
     }
 };
 
@@ -77,8 +69,8 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
     try {
         await userService.deleteUser(req.params.id);
-        return res.json({ message: "Usuario eliminado correctamente." });
+        return ApiResponse.success(res, null, "Usuario eliminado correctamente.");
     } catch (err) {
-        return res.status(404).json({ message: err.message });
+        return ApiResponse.error(res, err.message, 404, err);
     }
 };
